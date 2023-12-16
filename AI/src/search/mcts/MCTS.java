@@ -51,6 +51,7 @@ import search.mcts.nodes.OpenLoopNode;
 import search.mcts.nodes.ScoreBoundsNode;
 import search.mcts.nodes.StandardNode;
 import search.mcts.playout.HeuristicSampingPlayout;
+import search.mcts.playout.MAST;
 import search.mcts.playout.PlayoutStrategy;
 import search.mcts.playout.RandomPlayout;
 import search.mcts.selection.*;
@@ -261,7 +262,13 @@ public class MCTS extends ExpertPolicy
 
 	public double maxsec ;
 
-	public double exconstUCT ;
+	public AtomicInteger currIT ;
+
+	public int maxIT ;
+
+	private double branchingFactor = 0 ;
+
+	private double numMove = 0 ;
 
 	//-------------------------------------------------------------------------
 
@@ -271,7 +278,8 @@ public class MCTS extends ExpertPolicy
 	 */
 	public static MCTS createUCT()
 	{
-		return createUCT(Math.sqrt(2.0));
+		//return createUCT(Math.sqrt(2.0));
+		return createUCT(0.4) ;
 	}
 
 	/**
@@ -286,13 +294,13 @@ public class MCTS extends ExpertPolicy
 		final MCTS uct =
 				new MCTS
 						(
-								new UCB1(),
+								new UCB1(explorationConstant),
 								new RandomPlayout(200),
 								new MonteCarloBackprop(),
 								new RobustChild()
 						);
 
-		uct.friendlyName = "UCT";
+		uct.friendlyName = "UCT "+ explorationConstant;
 
 		return uct;
 	}
@@ -311,15 +319,144 @@ public class MCTS extends ExpertPolicy
 		return ucbt;
 	}
 
+	public static MCTS createMAST(double explorationConstant, double epsilon){
+		final MCTS mast =
+				new MCTS
+						(
+								new UCB1(explorationConstant),
+								new MAST(200, epsilon),
+								new MonteCarloBackprop(),
+								new RobustChild()
+						);
+		mast.setQInit(QInit.PARENT);
+		mast.friendlyName = "MAST "+explorationConstant + "ep : "+epsilon ;
+		return mast;
+	}
+
+	public static MCTS createMultiMast(double explorationConstant, boolean normalize, double fractionTime){
+		final MCTS Multimast =
+				new MCTS
+						(
+								new UCBmulti2(explorationConstant, normalize, fractionTime),
+								new MAST(200, 0.4),
+								new MonteCarloBackprop(),
+								new RobustChild()
+						);
+		Multimast.setQInit(QInit.PARENT);
+		Multimast.friendlyName = "MultiMAST "+explorationConstant+" "+normalize+" "+fractionTime ;
+		return Multimast;
+	}
+
+	public static MCTS createMultiRave(double explorationConstant, boolean normalize, double fractionTime){
+		final MCTS MultiRave =
+				new MCTS
+						(
+								new MultiRave(explorationConstant, normalize, fractionTime),
+								new RandomPlayout(200),
+								new MonteCarloBackprop() ,
+								new RobustChild()
+						);
+		MultiRave.setQInit(QInit.PARENT);
+		MultiRave.friendlyName = "MultiRave "+explorationConstant+" "+normalize+" "+fractionTime ;
+		return MultiRave;
+	}
+
+
+
+	public static MCTS createUCTRAVE(double explorationConstant){
+		final MCTS UCTrave =
+				new MCTS
+						(
+								new UCB1GRAVE(0,10.0e-6,explorationConstant),
+								new RandomPlayout(200),
+								new MonteCarloBackprop(),
+								new RobustChild()
+				);
+		UCTrave.friendlyName = "rave "+explorationConstant ;
+		return UCTrave ;
+	}
+
+
+	public static MCTS createMASTRAVE(double explorationConstant){
+		final MCTS MASTRAVE =
+				new MCTS
+						(new UCB1GRAVE(0,10.0e-6,explorationConstant),
+								new MAST(200,0.4),
+								new MonteCarloBackprop(),
+								new RobustChild()
+						);
+		MASTRAVE.friendlyName = "MR" + explorationConstant ;
+		return MASTRAVE ;
+	}
+
+	public static MCTS createMultiMASTRAVE(double explorationConstant, boolean normalize, double fractionTime){
+		final MCTS MultiMASTRAVE =
+				new MCTS
+				(new MultiRave(explorationConstant, normalize, fractionTime),
+						new MAST(200,0.4),
+						new MonteCarloBackprop(),
+						new RobustChild()
+				);
+		MultiMASTRAVE.friendlyName = "MultiMR "+explorationConstant+" "+normalize+" "+" "+fractionTime ;
+		return MultiMASTRAVE ;
+	}
+
+
+
+	public static MCTS createUCBmulti(final double explorationConstant){
+		final MCTS ucbmulti =
+				new MCTS(new UCBmulti(explorationConstant),
+						new RandomPlayout(200),
+						new MonteCarloBackprop(),
+						new RobustChild()) ;
+		ucbmulti.friendlyName = "UCB-Multi "+explorationConstant ;
+		return ucbmulti ;
+	}
+
 	public static MCTS createUCBmulti(){
 		final MCTS ucbmulti =
-				new MCTS(new UCBmulti(),
+				new MCTS(new UCBmulti(0.4),
 						new RandomPlayout(200),
 						new MonteCarloBackprop(),
 						new RobustChild()) ;
 		ucbmulti.friendlyName = "UCB-Multi" ;
 		return ucbmulti ;
 	}
+
+	public static MCTS createUCBmulti2(double explorationConstant, boolean normalize, double fractionTime){
+		final MCTS ucbmulti2 =
+				new MCTS(new UCBmulti2(explorationConstant, normalize,fractionTime),
+						new RandomPlayout(200),
+						new MonteCarloBackprop(),
+						new RobustChild()) ;
+		ucbmulti2.friendlyName = "UCB-Multi "+explorationConstant+ " "+normalize+ " "+fractionTime ;
+		return ucbmulti2 ;
+
+	}
+
+
+	public static MCTS createUCBMultiModified(double explorationConstant, double fractionTime){
+		final MCTS ucbmultiModified=
+				new MCTS(new UCBMultiModified(explorationConstant ,fractionTime),
+						new RandomPlayout(200),
+						new MonteCarloBackprop(),
+						new RobustChild()) ;
+		ucbmultiModified.friendlyName = "UCB-Multi "+explorationConstant+" "+fractionTime ;
+		return ucbmultiModified ;
+
+	}
+
+	public static MCTS createUCBMultiMaxIterration(double explorationConstant, double fractionTime, boolean normalize){
+		final MCTS ucbmultiMaxIterration =
+		new MCTS(new UCBmultiMaxIterration(explorationConstant, fractionTime, normalize),
+				new RandomPlayout(200),
+				new MonteCarloBackprop(),
+				new RobustChild()) ;
+		ucbmultiMaxIterration.friendlyName = "UCB-MultiMax "+explorationConstant+ " "+normalize+" "+fractionTime ;
+		return ucbmultiMaxIterration ;
+
+	}
+
 
 	/**
 	 * Creates a Biased MCTS agent which attempts to use features and
@@ -499,6 +636,9 @@ public class MCTS extends ExpertPolicy
 	{
 
 		maxsec = maxSeconds ;
+		maxIT = maxIterations ;
+		//branchingFactor = 0 ;
+
 
 		final long startTime = System.currentTimeMillis();
 		//System.out.println(startTime);
@@ -517,6 +657,7 @@ public class MCTS extends ExpertPolicy
 		numThreadsBusy.set(0);
 
 		final AtomicInteger numIterations = new AtomicInteger();
+		currIT = numIterations ;
 
 		// Find or create root node
 		if (treeReuse && rootNode != null)
@@ -557,6 +698,11 @@ public class MCTS extends ExpertPolicy
 			// Need to create a fresh root
 			rootNode = createNode(this, null, null, null, context);
 			//System.out.println("NO TREE REUSE");
+			//branchingFactor = branchingFactor + rootNode.numLegalMoves() ;
+			//numMove = numMove +1 ;
+			//System.out.println(branchingFactor);
+			//System.out.println(numMove);
+
 		}
 		else
 		{
@@ -565,6 +711,10 @@ public class MCTS extends ExpertPolicy
 			// We're reusing a part of previous search tree
 			// Clean up unused parts of search tree from memory
 			rootNode.setParent(null);
+			//branchingFactor = branchingFactor + numIterations.get() ;
+			//numMove = numMove +1 ;
+			//System.out.println(branchingFactor);
+			//System.out.println(numMove);
 
 			// TODO in nondeterministic games + OpenLoop MCTS, we'll want to
 			// decay statistics gathered in the entire subtree here
@@ -749,9 +899,11 @@ public class MCTS extends ExpertPolicy
 										 Backpropagation Phase
 										 ***************************/
 										final double[] outcome = RankUtils.agentUtilities(playoutContext);
+										//System.out.println(Arrays.toString(outcome));
 										backpropagationStrategy.update(this, current, playoutContext, outcome, numPlayoutActions);
 
 										numIterations.incrementAndGet();
+										branchingFactor = branchingFactor + 1 ;
 									}
 
 									rootThisCall.cleanThreadLocals();
@@ -847,7 +999,10 @@ public class MCTS extends ExpertPolicy
 			}
 		}
 
-		//System.out.println(numIterations + " MCTS iterations");
+		/*branchingFactor = branchingFactor + numIterations.get() ;
+		numMove = numMove + 1 ;
+		System.out.println(branchingFactor+ " MCTS iterations");
+		System.out.println(numMove + " Num Moves");*/
 		return returnMove;
 	}
 
@@ -1938,6 +2093,10 @@ public class MCTS extends ExpertPolicy
 		{
 			return "[Moves = " + Arrays.toString(moves) + ", Hash = " + cachedHashCode + "]";
 		}
+	}
+
+	public SelectionStrategy getSelectionStrategy(){
+		return selectionStrategy ;
 	}
 
 }

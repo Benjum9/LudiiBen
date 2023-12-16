@@ -20,12 +20,12 @@ import utils.RandomAI;
  *
  * @author Dennis Soemers
  */
-public class RunningTrials {
+public class RunningTrialsUCBmulti {
 
     /**
      * The number of trials that we'd like to run
      */
-    private static final int NUM_TRIALS = 1;
+    private static final int NUM_TRIALS = 50;
 
     /**
      * Main method
@@ -35,8 +35,8 @@ public class RunningTrials {
     public static void main(final String[] args) {
 
         // Specify the filename
-       // String filename = "/home/I6256403/project/results.txt";
-        String filename = "/Users/benjamingauthier/Desktop/results.txt";
+        String filename = "/home/I6256403/project/resultsMultiConnect.txt";
+       //String filename = "/Users/benjamingauthier/Desktop/resultsMulti.txt";
 
         File file = new File(filename);
 
@@ -57,7 +57,8 @@ public class RunningTrials {
         try (FileWriter fw = new FileWriter(filename, true);  // true will append to file, false (or omitted) will overwrite
              PrintWriter pw = new PrintWriter(fw)) {
             // Load our game -- we only need to do this once, and can use it for many trials
-            final Game game = GameLoader.loadGameFromName("Hex.lud");
+            final Game game = GameLoader.loadGameFromName("Connect Four.lud");
+            System.out.println("Connect Four");
 
             // Prepare Context and Trial objects; these are also re-usable by resetting them,
             // but we'd have to copy them if we wanted to preserve all of the different objects
@@ -73,12 +74,20 @@ public class RunningTrials {
                 exconst = exconst + 1;
             }
 
+            final List<AI> ucbMulti = new ArrayList<AI>();
+            double exconstm = 1;
+            while (exconstm < 21) {
+                ucbMulti.add(MCTS.createUCBmulti(exconstm/10.0));
+                //System.out.println(exconstm/100.0);
+                exconstm = exconstm + 1;
+            }
+
 
             //-----------------------------------------------------------------------
 
             for (int i = 1; i < ucts.size() + 1; i++) {
 
-                pw.println("UCT "+String.valueOf((double)i/(double)10) + " VS " + "UCBT " +"NUM Trials :"+NUM_TRIALS) ;
+                pw.println("UCT "+String.valueOf((i)/10.0) + " VS " + "UCB-Multi "+String.valueOf((i)/10.0) +" NUM Trials :"+NUM_TRIALS) ;
                 pw.flush();
                 int numUCT = 0;
                 int numUCBT = 0;
@@ -96,9 +105,9 @@ public class RunningTrials {
 
                     if (j % 2 == 0) {
                         ais.add(ucts.get(i-1));
-                        ais.add(MCTS.createUCBT());
+                        ais.add(ucbMulti.get(i-1));
                     } else {
-                        ais.add(MCTS.createUCBT());
+                        ais.add(ucbMulti.get(i-1));
                         ais.add(ucts.get(i-1));
                     }
 
@@ -136,7 +145,7 @@ public class RunningTrials {
                             numUCT = numUCT + 1;
                             // System.out.println("UCT won");
                         }
-                        if (ais.get(p).friendlyName().equals("UCBT") && ranking[p] == 1) {
+                        if (ais.get(p).friendlyName().equals("UCB-Multi") && ranking[p] == 1) {
                             numUCBT = numUCBT + 1;
                             //System.out.println("UCBT won");
                         }
@@ -154,7 +163,7 @@ public class RunningTrials {
                             System.out.println("Mean UCT =" + String.valueOf((double) numUCT / (double) j));
                         } else {
                             System.out.println("Agent " + context.state().playerToAgent(p) + " " + ais.get(p).friendlyName() + " achieved rank: " + ranking[p]);
-                            System.out.println("Mean UCBT =" + String.valueOf((double) numUCBT / (double) j));
+                            System.out.println("Mean UCB-Multi =" + String.valueOf((double) numUCBT / (double) j));
                         }
                     }
                     System.out.println();
@@ -162,8 +171,11 @@ public class RunningTrials {
                 }
                 System.out.println("-----------------------------------");
                 pw.println("Mean UCT = " + String.valueOf((double) numUCT / (double) NUM_TRIALS));
+                pw.println("Wins UCT = "+String.valueOf(numUCT));
                 pw.flush();
-                pw.println("Mean UCBT = " + String.valueOf((double) numUCBT / (double) NUM_TRIALS));
+                pw.println("Mean UCB-Multi = " + String.valueOf((double) numUCBT / (double) NUM_TRIALS));
+                pw.println("Wins UCB-Multi = " + String.valueOf(numUCBT));
+                pw.println("------------------------------------------------");
                 pw.flush();
 
             }

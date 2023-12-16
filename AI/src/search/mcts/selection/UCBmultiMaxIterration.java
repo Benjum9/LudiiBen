@@ -7,8 +7,7 @@ import search.mcts.nodes.BaseNode;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class UCBmulti implements SelectionStrategy{
-
+public class UCBmultiMaxIterration implements SelectionStrategy {
     protected double explorationConstant ;
     private double[] tValue = {
             63.657, 9.925, 5.841, 4.604, 4.032, 3.707, 3.499, 3.355, 3.250, 3.169,
@@ -20,13 +19,18 @@ public class UCBmulti implements SelectionStrategy{
     };
 
     private double maxsec ;
+    private AtomicInteger currIT ;
+
     private String exconst ;
 
+    private double fractionTime ;
 
-    public UCBmulti()
+    private boolean normalize ;
+
+    public UCBmultiMaxIterration()
     {
 
-        this.explorationConstant = 0.8 ;
+        this.explorationConstant = 1.6 ;
         exconst = String.valueOf(explorationConstant) ;
     }
 
@@ -41,10 +45,19 @@ public class UCBmulti implements SelectionStrategy{
      * Constructor with parameter for exploration constant
      * @param explorationConstant
      */
-    public UCBmulti(final double explorationConstant)
+    public UCBmultiMaxIterration(final double explorationConstant)
     {
         this.explorationConstant = explorationConstant;
         exconst = String.valueOf(explorationConstant) ;
+
+    }
+    public UCBmultiMaxIterration(final double explorationConstant, double fractionTime, boolean normalize)
+    {
+        this.explorationConstant = explorationConstant;
+        this.fractionTime = fractionTime ;
+        this.normalize = normalize ;
+        exconst = String.valueOf(explorationConstant) ;
+
 
     }
 
@@ -56,6 +69,9 @@ public class UCBmulti implements SelectionStrategy{
     public int select(MCTS mcts, BaseNode current) {
 
         maxsec = mcts.maxsec;
+        currIT = mcts.currIT ;
+       // System.out.println(currIT.get());
+
 
         final int numChildren = current.numLegalMoves();
 
@@ -65,25 +81,25 @@ public class UCBmulti implements SelectionStrategy{
             for (int i = 0; i < numChildren; i++) {
                 final BaseNode child = current.childForNthLegalMove(i);
                 if (child == null || child.numVisits() < 10) {
-                     //System.out.println("Forced exploration");
+                    //System.out.println("Forced exploration");
                     return i;
                 }
             }
             //--------------------------------- Case root node UCBT
 
-            double limitUCBT = maxsec*1000/3*2 ; // stop at 1/3 of thinking time
-            //System.out.println((System.currentTimeMillis()-mcts.stopUCBmulti));
-           // System.out.println(maxsec*1000);
-           // System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
-
-            if(-(System.currentTimeMillis()-mcts.stopUCBmulti)>limitUCBT){
-               // System.out.println("UCBTTTTTTTTTTTTTTT");
-
+            //double limitUCBT = maxsec*1000/3*2 ; // stop at 1/3 of thinking time
+            //if(-(System.currentTimeMillis()-mcts.stopUCBmulti)>limitUCBT){
+            int limitUCBT = (int) (mcts.maxIT*fractionTime);
+            limitUCBT = mcts.maxIT - limitUCBT ;
+            if(mcts.maxIT-mcts.currIT.get()>limitUCBT){
+               //  System.out.println("UCBTTTTTTTTTTTTTTT");
+               // System.out.println(mcts.maxIT-mcts.currIT.get());
+              //  System.out.println(limitUCBT);
                 return selectUCBT(mcts,current) ;}
 
             //--------------------------------- Case root node POLYUCB start at 1/3 of thinking time
             else{
-              //  System.out.println("POLYYYYYYYYYYYYYYY");
+                //  System.out.println("POLYYYYYYYYYYYYYYY");
                 return selectPolyUCB1(mcts,current);
 
             }
@@ -185,7 +201,10 @@ public class UCBmulti implements SelectionStrategy{
     }
 
     private double normalize(BaseNode child, int moveragent, double log){
+        if(normalize)
         return dervieC(child, moveragent,log)+explorationConstant-avgDerivedC(child.parent(), moveragent,log) ;
+        else
+            return  dervieC(child,moveragent,log );
     }
 
     private int selectUCB1(MCTS mcts, BaseNode current){
@@ -346,3 +365,4 @@ public class UCBmulti implements SelectionStrategy{
     }
 
 }
+

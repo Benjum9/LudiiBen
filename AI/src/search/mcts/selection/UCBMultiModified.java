@@ -1,13 +1,13 @@
 package search.mcts.selection;
 
+
 import other.state.State;
 import search.mcts.MCTS;
 import search.mcts.nodes.BaseNode;
 
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class UCBmulti implements SelectionStrategy{
+public class UCBMultiModified implements SelectionStrategy{
 
     protected double explorationConstant ;
     private double[] tValue = {
@@ -20,13 +20,19 @@ public class UCBmulti implements SelectionStrategy{
     };
 
     private double maxsec ;
+
     private String exconst ;
 
 
-    public UCBmulti()
+    private double fractionTime ;
+
+
+
+
+    public UCBMultiModified()
     {
 
-        this.explorationConstant = 0.8 ;
+        this.explorationConstant = 0.32 ;
         exconst = String.valueOf(explorationConstant) ;
     }
 
@@ -41,15 +47,16 @@ public class UCBmulti implements SelectionStrategy{
      * Constructor with parameter for exploration constant
      * @param explorationConstant
      */
-    public UCBmulti(final double explorationConstant)
+    public UCBMultiModified(final double explorationConstant)
     {
         this.explorationConstant = explorationConstant;
         exconst = String.valueOf(explorationConstant) ;
 
     }
 
-    public String getExconst(){
-        return exconst ;
+    public UCBMultiModified(double explorationConstant, double fractionTime){
+        this.explorationConstant = explorationConstant ;
+        this.fractionTime = fractionTime ;
     }
 
     @Override
@@ -65,32 +72,31 @@ public class UCBmulti implements SelectionStrategy{
             for (int i = 0; i < numChildren; i++) {
                 final BaseNode child = current.childForNthLegalMove(i);
                 if (child == null || child.numVisits() < 10) {
-                     //System.out.println("Forced exploration");
+                    //  System.out.println("Forced exploration");
                     return i;
                 }
             }
             //--------------------------------- Case root node UCBT
 
-            double limitUCBT = maxsec*1000/3*2 ; // stop at 1/3 of thinking time
-            //System.out.println((System.currentTimeMillis()-mcts.stopUCBmulti));
-           // System.out.println(maxsec*1000);
-           // System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
+            double limitUCBT = maxsec*1000*fractionTime; // stop at 1/3 of thinking time
+            // System.out.println(-(System.currentTimeMillis()-mcts.stopUCBmulti));
+            //System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
 
-            if(-(System.currentTimeMillis()-mcts.stopUCBmulti)>limitUCBT){
-               // System.out.println("UCBTTTTTTTTTTTTTTT");
-
+            if((maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti))<limitUCBT){
+                // System.out.println("UCBTTTTTTTTTTTTTTT");
+                //  System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
                 return selectUCBT(mcts,current) ;}
 
             //--------------------------------- Case root node POLYUCB start at 1/3 of thinking time
             else{
-              //  System.out.println("POLYYYYYYYYYYYYYYY");
+                //  System.out.println("POLYYYYYYYYYYYYYYY");
                 return selectPolyUCB1(mcts,current);
 
             }
         }
 
         else {
-            //System.out.println("UCT");
+            //  System.out.println("UCT");
             return selectUCB1(mcts, current);
         }
     }
@@ -185,6 +191,7 @@ public class UCBmulti implements SelectionStrategy{
     }
 
     private double normalize(BaseNode child, int moveragent, double log){
+
         return dervieC(child, moveragent,log)+explorationConstant-avgDerivedC(child.parent(), moveragent,log) ;
     }
 
@@ -321,7 +328,9 @@ public class UCBmulti implements SelectionStrategy{
 
             exploit = child.exploitationScore(moverAgent);
             final int numVisits = child.numVisits() + child.numVirtualVisits();
-            explore = Math.sqrt(parentLog / numVisits);
+
+            //Modified polyUCB1 formula remove sqrt of parentLLog
+            explore = (parentLog /Math.sqrt(numVisits));
 
             final double ucb1Value = exploit + normalize(child,moverAgent,parentLog) * explore;
 

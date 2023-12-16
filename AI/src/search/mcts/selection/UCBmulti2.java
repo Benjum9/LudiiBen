@@ -5,9 +5,8 @@ import search.mcts.MCTS;
 import search.mcts.nodes.BaseNode;
 
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class UCBmulti implements SelectionStrategy{
+public class UCBmulti2 implements SelectionStrategy{
 
     protected double explorationConstant ;
     private double[] tValue = {
@@ -20,13 +19,22 @@ public class UCBmulti implements SelectionStrategy{
     };
 
     private double maxsec ;
+
     private String exconst ;
 
+    private boolean normalize ;
 
-    public UCBmulti()
+    private double branchingFactor ;
+
+    private double fractionTime ;
+
+
+
+
+    public UCBmulti2()
     {
 
-        this.explorationConstant = 0.8 ;
+        this.explorationConstant = 0.32 ;
         exconst = String.valueOf(explorationConstant) ;
     }
 
@@ -41,15 +49,17 @@ public class UCBmulti implements SelectionStrategy{
      * Constructor with parameter for exploration constant
      * @param explorationConstant
      */
-    public UCBmulti(final double explorationConstant)
+    public UCBmulti2(final double explorationConstant)
     {
         this.explorationConstant = explorationConstant;
         exconst = String.valueOf(explorationConstant) ;
 
     }
 
-    public String getExconst(){
-        return exconst ;
+    public UCBmulti2(double explorationConstant, boolean normalize, double fractionTime){
+        this.explorationConstant = explorationConstant ;
+        this.normalize = normalize ;
+        this.fractionTime = fractionTime ;
     }
 
     @Override
@@ -65,32 +75,31 @@ public class UCBmulti implements SelectionStrategy{
             for (int i = 0; i < numChildren; i++) {
                 final BaseNode child = current.childForNthLegalMove(i);
                 if (child == null || child.numVisits() < 10) {
-                     //System.out.println("Forced exploration");
+                  //  System.out.println("Forced exploration");
                     return i;
                 }
             }
             //--------------------------------- Case root node UCBT
 
-            double limitUCBT = maxsec*1000/3*2 ; // stop at 1/3 of thinking time
-            //System.out.println((System.currentTimeMillis()-mcts.stopUCBmulti));
-           // System.out.println(maxsec*1000);
-           // System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
+            double limitUCBT = maxsec*1000*fractionTime; // stop at 1/3 of thinking time
+           // System.out.println(-(System.currentTimeMillis()-mcts.stopUCBmulti));
+            //System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
 
-            if(-(System.currentTimeMillis()-mcts.stopUCBmulti)>limitUCBT){
+            if((maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti))<limitUCBT){
                // System.out.println("UCBTTTTTTTTTTTTTTT");
-
+              //  System.out.println(maxsec*1000+(System.currentTimeMillis()-mcts.stopUCBmulti));
                 return selectUCBT(mcts,current) ;}
 
             //--------------------------------- Case root node POLYUCB start at 1/3 of thinking time
             else{
-              //  System.out.println("POLYYYYYYYYYYYYYYY");
+                //  System.out.println("POLYYYYYYYYYYYYYYY");
                 return selectPolyUCB1(mcts,current);
 
             }
         }
 
         else {
-            //System.out.println("UCT");
+          //  System.out.println("UCT");
             return selectUCB1(mcts, current);
         }
     }
@@ -110,6 +119,8 @@ public class UCBmulti implements SelectionStrategy{
 
     }
 
+    // SD from beginning
+
     private double standardDeviation(BaseNode node, int moverAgent){
 
         double averageScore = node.exploitationScore(moverAgent);
@@ -126,6 +137,30 @@ public class UCBmulti implements SelectionStrategy{
 
         return sd ;
     }
+
+    // SD adapted when there is equality
+   /* private double standardDeviation(BaseNode node, int moverAgent){
+
+        double averageScore = node.exploitationScore(moverAgent);
+        int numVisits = node.numVisits() ;
+        double sd ;
+        double sum = 0 ;
+
+        for (int i = 0; i < numVisits; i++) {
+            double r = node.getHistoricScore().get(moverAgent).get(i) ;
+            //System.out.println(r);
+
+            if(r==0) {
+                r = -0.1;
+            }
+            sum = sum + Math.pow(r-averageScore,2) ;
+        }
+        sum = sum/(numVisits-1) ;
+        sum = Math.sqrt(sum) ;
+        sd = sum ;
+
+        return sd ;
+    }*/
 
 
     private double getTscore(BaseNode node){
@@ -185,7 +220,11 @@ public class UCBmulti implements SelectionStrategy{
     }
 
     private double normalize(BaseNode child, int moveragent, double log){
-        return dervieC(child, moveragent,log)+explorationConstant-avgDerivedC(child.parent(), moveragent,log) ;
+        if(normalize)
+            return dervieC(child, moveragent,log)+explorationConstant-avgDerivedC(child.parent(), moveragent,log) ;
+        else
+            return dervieC(child, moveragent, log) ;
+
     }
 
     private int selectUCB1(MCTS mcts, BaseNode current){

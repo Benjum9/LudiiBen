@@ -377,7 +377,9 @@ public abstract class AI
 		lastInitGame = new WeakReference<>(game);
 		lastInitGameStartCount = game.gameStartCount();
 	}
-	
+
+
+
 	//-------------------------------------------------------------------------
 	
 	/**

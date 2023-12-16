@@ -26,8 +26,10 @@ public final class UCB1 implements SelectionStrategy
 	 */
 	public UCB1()
 	{
-		this(Math.sqrt(2.0));
+		//this(Math.sqrt(2.0));
+		this(1.6);
 	}
+
 	
 	/**
 	 * Constructor with parameter for exploration constant
