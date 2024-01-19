@@ -128,10 +128,10 @@ public class AIFactory
 			return MCTS.createUCBmulti() ;
 
 		if(string.equalsIgnoreCase("MultiRave"))
-			return MCTS.createMultiRave(0.8, true, 0.4) ;
+			return MCTS.createMultiRave(0.8, true, 0.4, 300) ;
 
 		if(string.equalsIgnoreCase("rave"))
-			return MCTS.createUCTRAVE(0.8) ;
+			return MCTS.createUCTRAVE(0.8, 300) ;
 
 
 		if (string.equalsIgnoreCase("MC-GRAVE"))
@@ -542,10 +542,10 @@ public class AIFactory
 			return MCTS.createUCBmulti() ;
 		}
 		else if (algName.equalsIgnoreCase("MultiRave")){
-			return MCTS.createMultiRave(0.8,true, 0.4) ;
+			return MCTS.createMultiRave(0.8,true, 0.4, 300) ;
 		}
 		else if (algName.equalsIgnoreCase("rave")){
-			return MCTS.createUCTRAVE(0.8) ;
+			return MCTS.createUCTRAVE(0.8, 300) ;
 		}
 		else if (algName.equalsIgnoreCase("UCT (Uncapped)"))
 		{

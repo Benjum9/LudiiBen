@@ -17,13 +17,13 @@ public class MASTRAVEvsMultiMASTRAVE {
 
     private static final int NUM_TRIALS = 100;
 
-    private static final String GAME = "Breakthrough.lud" ;
+    private static final String GAME = "Pentago.lud" ;
 
     private static final double thinkingTime = 10.0 ;
 
     public static void main(final String[] args) {
 
-        String filename = "/home/I6256403/project/MASTRAVEvsMultiMASTRAVEBreakthrough5.txt";
+        String filename = "/home/I6256403/project/MASTRAVEvsMultiMASTRAVEPentago5.txt";
         // String filename = "/Users/benjamingauthier/Desktop/multiBamboo1not.txt";
 
 
@@ -56,10 +56,10 @@ public class MASTRAVEvsMultiMASTRAVE {
             final Trial trial = new Trial(game);
             final Context context = new Context(game, trial);
 
-            AI uct = MCTS.createMASTRAVE(0.6);
+            AI uct = MCTS.createMASTRAVE(1.0, 300);
             //AI multi = MCTS.createMAST(0.8) ;
             //AI multi = MCTS.createMultiMast(0.4,false, 0.4) ;
-            AI multi = MCTS.createMultiMASTRAVE(0.6,false,0.4) ;
+            AI multi = MCTS.createMultiMASTRAVE(1.0,false,0.4, 300) ;
 
             pw.println("Num Trials : "+NUM_TRIALS);
             pw.println("Game : "+ GAME);

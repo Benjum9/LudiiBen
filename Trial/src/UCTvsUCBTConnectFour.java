@@ -13,17 +13,17 @@ import other.model.Model;
 import other.trial.Trial;
 import search.mcts.MCTS;
 
-public class Multi16 {
+public class UCTvsUCBTConnectFour {
 
     private static final int NUM_TRIALS = 100;
 
-    private static final String GAME = "Pentago.lud" ;
+    private static final String GAME = "Connect Four.lud" ;
 
-    private static final double thinkingTime = 5.0 ;
+    private static final double thinkingTime = 10.0 ;
 
     public static void main(final String[] args) {
 
-        String filename = "/home/I6256403/project/UCBvsMultiPentago55.txt";
+        String filename = "/home/I6256403/project/UCBvsUCBTConnectFour.txt";
         // String filename = "/Users/benjamingauthier/Desktop/multiBamboo1not.txt";
 
 
@@ -56,11 +56,10 @@ public class Multi16 {
             final Trial trial = new Trial(game);
             final Context context = new Context(game, trial);
 
-            AI uct = MCTS.createUCT(1.0);
-            //AI multi = MCTS.createUCBMultiModified(0.4, 0.4);
-            // AI multi = MCTS.createUCBMultiModified(0.6,  0.4) ;
-           // AI multi = MCTS.createUCBMultiMaxIterration(0.8,0.5, true) ;
-            AI multi  = MCTS.createUCBmulti2(1.0, false, 0.4) ;
+            AI uct = MCTS.createUCT(100.0);
+            //AI multi = MCTS.createMAST(0.8) ;
+            //AI multi = MCTS.createMultiMast(0.4,false, 0.4) ;
+            AI multi = MCTS.createUCBT() ;
 
             pw.println("Num Trials : "+NUM_TRIALS);
             pw.println("Game : "+ GAME);
@@ -131,7 +130,7 @@ public class Multi16 {
                         numUCT = numUCT + 1;
                         //System.out.println("numUCT "+numUCT);
                     }
-                    if (ais.get(p).friendlyName().startsWith("UCB-Multi") && ranking[p] == 1) {
+                    if (ais.get(p).friendlyName().startsWith("UCBT") && ranking[p] == 1) {
                         numMulti = numMulti + 1;
                         // System.out.println("numUCT2 "+numUCT2);
                     }

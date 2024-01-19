@@ -347,11 +347,11 @@ public class MCTS extends ExpertPolicy
 		return Multimast;
 	}
 
-	public static MCTS createMultiRave(double explorationConstant, boolean normalize, double fractionTime){
+	public static MCTS createMultiRave(double explorationConstant, boolean normalize, double fractionTime, double bias){
 		final MCTS MultiRave =
 				new MCTS
 						(
-								new MultiRave(explorationConstant, normalize, fractionTime),
+								new MultiRave(explorationConstant, normalize, fractionTime, bias),
 								new RandomPlayout(200),
 								new MonteCarloBackprop() ,
 								new RobustChild()
@@ -363,11 +363,11 @@ public class MCTS extends ExpertPolicy
 
 
 
-	public static MCTS createUCTRAVE(double explorationConstant){
+	public static MCTS createUCTRAVE(double explorationConstant, double bias){
 		final MCTS UCTrave =
 				new MCTS
 						(
-								new UCB1GRAVE(0,10.0e-6,explorationConstant),
+								new UCB1GRAVE(0,bias,explorationConstant),
 								new RandomPlayout(200),
 								new MonteCarloBackprop(),
 								new RobustChild()
@@ -377,10 +377,10 @@ public class MCTS extends ExpertPolicy
 	}
 
 
-	public static MCTS createMASTRAVE(double explorationConstant){
+	public static MCTS createMASTRAVE(double explorationConstant, double bias){
 		final MCTS MASTRAVE =
 				new MCTS
-						(new UCB1GRAVE(0,10.0e-6,explorationConstant),
+						(new UCB1GRAVE(0,bias,explorationConstant),
 								new MAST(200,0.4),
 								new MonteCarloBackprop(),
 								new RobustChild()
@@ -389,10 +389,10 @@ public class MCTS extends ExpertPolicy
 		return MASTRAVE ;
 	}
 
-	public static MCTS createMultiMASTRAVE(double explorationConstant, boolean normalize, double fractionTime){
+	public static MCTS createMultiMASTRAVE(double explorationConstant, boolean normalize, double fractionTime, double bias){
 		final MCTS MultiMASTRAVE =
 				new MCTS
-				(new MultiRave(explorationConstant, normalize, fractionTime),
+				(new MultiRave(explorationConstant, normalize, fractionTime, bias),
 						new MAST(200,0.4),
 						new MonteCarloBackprop(),
 						new RobustChild()

@@ -46,7 +46,7 @@ public class MultiRave implements SelectionStrategy{
         this.explorationConstant = 0.8 ;
         exconst = String.valueOf(explorationConstant) ;
         this.ref = 0;
-        this.bias = 10.0e-6;
+        this.bias = 300;
     }
 
 
@@ -65,16 +65,17 @@ public class MultiRave implements SelectionStrategy{
         this.explorationConstant = explorationConstant;
         exconst = String.valueOf(explorationConstant) ;
         this.ref = 0;
-        this.bias = 10.0e-6;
+        this.bias = 300;
 
     }
 
-    public MultiRave(double explorationConstant, boolean normalize, double fractionTime){
+    public MultiRave(double explorationConstant, boolean normalize, double fractionTime, double bias){
         this.explorationConstant = explorationConstant ;
         this.normalize = normalize ;
         this.fractionTime = fractionTime ;
         this.ref = 0;
-        this.bias = 10.0e-6;
+        this.bias = bias;
+        System.out.println("Bias Multi = "+bias);
     }
 
     @Override
@@ -303,7 +304,7 @@ public class MultiRave implements SelectionStrategy{
                     final double graveScore = graveStats.accumulatedScore;
                     final int graveVisits = graveStats.visitCount;
                     meanAMAF = graveScore / graveVisits;
-                    beta = graveVisits / (graveVisits + childVisits + bias * graveVisits * childVisits);
+                    beta = Math.sqrt(bias/(3.0*childVisits+bias));
                 }
 
 
@@ -311,6 +312,8 @@ public class MultiRave implements SelectionStrategy{
             }
 
             final double graveValue = (1.0 - beta) * meanScore + beta * meanAMAF;
+
+
             final double ucb1GraveValue = graveValue + explorationConstant * explore;
 
             if (ucb1GraveValue > bestValue)

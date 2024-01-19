@@ -114,11 +114,13 @@ public class McGRAVE implements SelectionStrategy
         			// but in multi-threaded MCTS it can happen
         			meanAMAF = 0.0;
         			beta = 0.0;
+					System.out.println("null");
         		}
         		else
         		{
         			final double graveScore = graveStats.accumulatedScore;
 	        		final int graveVisits = graveStats.visitCount;
+					//System.out.println(graveVisits);
 	        		final int childVisits = child.numVisits() + child.numVirtualVisits();
 	        		meanAMAF = graveScore / graveVisits;
 	        		beta = graveVisits / (graveVisits + childVisits + bias * graveVisits * childVisits);
@@ -126,6 +128,7 @@ public class McGRAVE implements SelectionStrategy
         	}
 
         	final double graveValue = (1.0 - beta) * meanScore + beta * meanAMAF;
+			//System.out.println(graveValue);
 
         	if (graveValue > bestValue)
         	{
@@ -148,6 +151,7 @@ public class McGRAVE implements SelectionStrategy
         if (current.childForNthLegalMove(bestIdx) == null)
         	currentRefNode.set(null);
 
+		System.out.println(bestIdx);
         return bestIdx;
 	}
 	

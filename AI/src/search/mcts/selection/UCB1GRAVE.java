@@ -65,6 +65,7 @@ public class UCB1GRAVE implements SelectionStrategy
 		this.ref = ref;
 		this.bias = bias;
 		this.explorationConstant = explorationConstant;
+		System.out.println("Bias = "+bias);
 	}
 	
 	//-------------------------------------------------------------------------
@@ -131,7 +132,8 @@ public class UCB1GRAVE implements SelectionStrategy
         			final double graveScore = graveStats.accumulatedScore;
             		final int graveVisits = graveStats.visitCount;
             		meanAMAF = graveScore / graveVisits;
-            		beta = graveVisits / (graveVisits + childVisits + bias * graveVisits * childVisits);
+            		//beta = graveVisits / (graveVisits + childVisits + bias * graveVisits * childVisits);
+					beta = Math.sqrt(bias/(3.0*childVisits+bias));
         		}
         		
 
@@ -199,6 +201,10 @@ public class UCB1GRAVE implements SelectionStrategy
 				}
 			}
 		}
+	}
+
+	public double getBias(){
+		return bias ;
 	}
 	
 	//-------------------------------------------------------------------------

@@ -39,8 +39,8 @@ public class AIRegistry
 	{
 		// Static block to register our built-in AIs
 		registerAI("UCB-Multi",-1, (game)->{return MCTS.createUCBmulti().supportsGame(game);},null);
-		registerAI("rave",-1, (game)->{return MCTS.createUCTRAVE(0.8).supportsGame(game);},null);
-		registerAI("MultiRave",-1, (game)->{return MCTS.createMultiRave(0.8,true,0.4).supportsGame(game);},null);
+		registerAI("rave",-1, (game)->{return MCTS.createUCTRAVE(0.8, 300).supportsGame(game);},null);
+		registerAI("MultiRave",-1, (game)->{return MCTS.createMultiRave(0.8,true,0.4, 300).supportsGame(game);},null);
 		registerAI("UCBT",-1, (game)->{return MCTS.createUCBT().supportsGame(game);},null);
 		registerAI("Human", -1, (game) -> {return false;}, null);	// We have special handling for human in dropdown menus
 		registerAI("Ludii AI", -1, (game) -> {return true;}, null);

@@ -84,6 +84,7 @@ public class UCBT implements SelectionStrategy {
             final int numVisits = child.numVisits() + child.numVirtualVisits();
 
             double ucbt = exploit + getTscore(child) *sd/Math.sqrt(numVisits) ;
+            //System.out.println(ucbt);
 
          /*   System.out.println(child.getHistoricScore().get(moverAgent).toString());
             System.out.println("Num Visit: "+numVisits);
